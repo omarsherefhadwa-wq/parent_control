@@ -446,7 +446,22 @@
       } catch (e) {}
     }
 
-    function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
+async function openBookingModal() {
+  try {
+    const { data } = await supabaseClient
+      .from('teacher_settings')
+      .select('is_booking_open')
+      .eq('id', 'main_teacher')
+      .single();
+      
+    if (data && data.is_booking_open === false) {
+      showToast('اعتذار: تم إغلاق باب الحجز مؤقتاً بواسطة إدارة السنتر.', 'error');
+      return;
+    }
+  } catch(e) {}
+  
+  document.getElementById('bookingModal').classList.remove('hidden');
+}
     function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
 
     async function handleBookingSubmit(e) {
