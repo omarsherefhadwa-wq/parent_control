@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#ffffff">
   <title>بوابة ولي الأمر - متابعة الطلاب والحجز</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,6 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --border-card: #e2e8f0;
+      --bg-input: #f1f5f9;
+      --border-input: #cbd5e1;
+      --text-main: #0f172a;
+    }
+
+    html.dark {
       --bg-main: #090d16;
       --bg-card: #131b2e;
       --border-card: #243049;
@@ -23,6 +32,7 @@
       font-family: 'Tajawal', sans-serif;
       background-color: var(--bg-main);
       color: var(--text-main);
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     .gold-gradient {
@@ -45,9 +55,35 @@
       outline: none;
     }
 
+    /* تحويل ألوان العناصر الداكنة تلقائياً في الوضع النهاري دون المساس بالوضع الليلي */
+    html:not(.dark) .text-white { color: #0f172a !important; }
+    html:not(.dark) .text-slate-100 { color: #1e293b !important; }
+    html:not(.dark) .text-slate-200 { color: #1e293b !important; }
+    html:not(.dark) .text-slate-300 { color: #334155 !important; }
+    html:not(.dark) .text-slate-400 { color: #64748b !important; }
+    html:not(.dark) .bg-slate-900\/80,
+    html:not(.dark) .bg-slate-900\/70,
+    html:not(.dark) .bg-slate-900\/60,
+    html:not(.dark) .bg-slate-900\/40 { background-color: #f1f5f9 !important; }
+    html:not(.dark) .bg-slate-800,
+    html:not(.dark) .bg-slate-800\/80 { background-color: #e2e8f0 !important; color: #0f172a !important; }
+    html:not(.dark) .hover\:bg-slate-800:hover,
+    html:not(.dark) .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
+    html:not(.dark) .border-slate-800,
+    html:not(.dark) .border-slate-800\/80,
+    html:not(.dark) .border-slate-700,
+    html:not(.dark) .border-slate-700\/80 { border-color: #e2e8f0 !important; }
+    html:not(.dark) .bg-emerald-950\/50 { background-color: #ecfdf5 !important; border-color: #a7f3d0 !important; color: #065f46 !important; }
+    html:not(.dark) .text-emerald-300 { color: #065f46 !important; }
+    html:not(.dark) .bg-red-950\/70 { background-color: #fef2f2 !important; border-color: #fecaca !important; color: #991b1b !important; }
+    html:not(.dark) .text-red-300 { color: #991b1b !important; }
+    html:not(.dark) .bg-indigo-950 { background-color: #eef2ff !important; color: #3730a3 !important; border-color: #c7d2fe !important; }
+    html:not(.dark) .text-amber-400 { color: #d97706 !important; }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg-main); }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    html.dark ::-webkit-scrollbar-thumb { background: #334155; }
 
     @media print {
       body * { visibility: hidden; }
@@ -125,6 +161,15 @@
       </div>
 
       <div class="space-y-2.5 text-xs">
+        <!-- زر التبديل بين الوضع الليلي والنهاري (في أول الإعدادات) -->
+        <button onclick="toggleThemeMode()" class="w-full flex items-center justify-between p-3.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-500 font-bold transition">
+          <span class="flex items-center gap-3">
+            <i id="themeToggleIcon" class="fa-solid fa-moon text-base"></i>
+            <span id="themeToggleText">التبديل إلى الوضع الليلي</span>
+          </span>
+          <span id="themeBadgeLabel" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-900 font-extrabold">الوضع النهاري</span>
+        </button>
+
         <button onclick="printStudentReport()" class="w-full flex items-center justify-between p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold transition">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-file-pdf text-emerald-400 text-base"></i>
@@ -175,7 +220,7 @@
 
     <!-- Parent Login Screen -->
     <div id="parentLoginScreen" class="flex-grow flex items-center justify-center p-4">
-      <div class="card-bg p-7 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/80 relative overflow-hidden">
+      <div class="card-bg p-7 sm:p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-700/80 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-2 h-full gold-gradient"></div>
 
         <div class="text-center mb-6">
@@ -222,7 +267,7 @@
         <div class="mt-4 pt-4 border-t border-slate-800 text-center">
           <p class="text-[11px] text-slate-400 mb-2">ليس لديك طالب مسجل وترغب في الحجز بالسنتر؟</p>
           <p class="text-[11px] text-slate-400 mb-2">سيتم الرد علي واتساب ولي الامر بعد الموافقه علي طلب حجز الطالب</p>
-          <button onclick="openBookingModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow">
+          <button onclick="openBookingModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-sm">
             <i class="fa-solid fa-user-plus"></i>
             <span>حجز وتسجيل طالب جديد بالسنتر</span>
           </button>
@@ -232,7 +277,7 @@
 
     <!-- Parent Dashboard Screen -->
     <div id="parentDashboardScreen" class="hidden flex-grow flex flex-col">
-      <header class="card-bg border-b border-slate-800 sticky top-0 z-30 no-print">
+      <header class="card-bg border-b border-slate-800 sticky top-0 z-30 no-print shadow-sm">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 gold-gradient rounded-xl flex items-center justify-center text-slate-900 font-extrabold shadow">
@@ -240,13 +285,13 @@
             </div>
             <div>
               <h2 id="dashCenterBrand" class="font-extrabold text-base text-white leading-tight">منصة MR</h2>
-              <span class="text-[11px] text-emerald-400 flex items-center gap-1">
+              <span class="text-[11px] text-emerald-500 flex items-center gap-1 font-bold">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> تحديث تلقائي مباشر
               </span>
             </div>
           </div>
 
-          <button onclick="openParentSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow">
+          <button onclick="openParentSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm">
             <i class="fa-solid fa-gear text-sm"></i>
             <span>الإعدادات والخيارات</span>
           </button>
@@ -254,7 +299,7 @@
       </header>
 
       <main id="printableStudentReport" class="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex-grow w-full space-y-6">
-        <div class="card-bg print-card p-5 sm:p-6 rounded-2xl border-r-4 border-amber-500 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="card-bg print-card p-5 sm:p-6 rounded-2xl border-r-4 border-amber-500 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="space-y-1.5">
             <div class="flex flex-wrap items-center gap-2">
               <span id="viewStudentCode" class="bg-amber-500/15 text-amber-400 border border-amber-500/40 px-2.5 py-0.5 rounded-lg text-xs font-extrabold">كود: 1</span>
@@ -280,26 +325,26 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1">
+          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1 shadow-sm">
             <span class="text-[11px] text-slate-400 block">نسبة الالتزام والحضور</span>
             <span id="statAttendanceRatio" class="text-xl font-extrabold text-amber-400">100%</span>
           </div>
-          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1">
+          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1 shadow-sm">
             <span class="text-[11px] text-slate-400 block">أيام الحضور</span>
-            <span id="statPresentDays" class="text-xl font-extrabold text-emerald-400">0</span>
+            <span id="statPresentDays" class="text-xl font-extrabold text-emerald-500">0</span>
           </div>
-          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1">
+          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1 shadow-sm">
             <span class="text-[11px] text-slate-400 block">أيام الغياب</span>
-            <span id="statAbsentDays" class="text-xl font-extrabold text-red-400">0</span>
+            <span id="statAbsentDays" class="text-xl font-extrabold text-red-500">0</span>
           </div>
-          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1">
+          <div class="card-bg print-card p-4 rounded-2xl text-center space-y-1 shadow-sm">
             <span class="text-[11px] text-slate-400 block">الشهور المسددة</span>
-            <span id="statPaidMonths" class="text-xl font-extrabold text-sky-400">0 / 12</span>
+            <span id="statPaidMonths" class="text-xl font-extrabold text-sky-500">0 / 12</span>
           </div>
         </div>
 
         <!-- صندوق ملاحظات المعلم -->
-        <div class="card-bg print-card p-5 rounded-2xl space-y-3 border-r-4 border-amber-500">
+        <div class="card-bg print-card p-5 rounded-2xl space-y-3 border-r-4 border-amber-500 shadow-sm">
           <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
             <h3 class="font-bold text-sm sm:text-base text-white print-text-dark flex items-center gap-2">
               <i class="fa-solid fa-comment-dots text-amber-400"></i>
@@ -310,10 +355,10 @@
           <div id="teacherNotesContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
 
-        <div class="card-bg print-card p-5 rounded-2xl space-y-4">
+        <div class="card-bg print-card p-5 rounded-2xl space-y-4 shadow-sm">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
             <h3 class="font-bold text-sm sm:text-base text-white print-text-dark flex items-center gap-2">
-              <i class="fa-solid fa-clipboard-check text-indigo-400"></i>
+              <i class="fa-solid fa-clipboard-check text-indigo-500"></i>
               <span>سجل الحضور والغياب ودرجات التسميع</span>
             </h3>
             <select id="filterAttendanceMonth" onchange="renderStudentDashboard()" class="input-style text-xs p-2 rounded-xl no-print">
@@ -336,10 +381,10 @@
           <div id="attendanceRecordsContainer" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
         </div>
 
-        <div class="card-bg print-card p-5 rounded-2xl space-y-4">
+        <div class="card-bg print-card p-5 rounded-2xl space-y-4 shadow-sm">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <h3 class="font-bold text-sm sm:text-base text-white print-text-dark flex items-center gap-2">
-              <i class="fa-solid fa-money-check-dollar text-emerald-400"></i>
+              <i class="fa-solid fa-money-check-dollar text-emerald-500"></i>
               <span>حالة سداد المصروفات الشهرية</span>
             </h3>
             <span class="text-[11px] text-slate-400">محدث تلقائياً من إدارة السنتر</span>
@@ -365,6 +410,38 @@
     let failedAttempts = 0;
     let lockoutUntil = 0;
 
+    // إدارة الوضع النهاري والليلي (الافتراضي نهاري أبيض)
+    function applySavedTheme() {
+      const savedTheme = localStorage.getItem('mr_parent_theme') || 'light';
+      const htmlEl = document.documentElement;
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      const icon = document.getElementById('themeToggleIcon');
+      const text = document.getElementById('themeToggleText');
+      const badge = document.getElementById('themeBadgeLabel');
+
+      if (savedTheme === 'dark') {
+        htmlEl.classList.add('dark');
+        if (metaTheme) metaTheme.setAttribute('content', '#090d16');
+        if (icon) icon.className = 'fa-solid fa-sun text-base';
+        if (text) text.textContent = 'التبديل إلى الوضع النهاري';
+        if (badge) badge.textContent = 'الوضع الليلي';
+      } else {
+        htmlEl.classList.remove('dark');
+        if (metaTheme) metaTheme.setAttribute('content', '#ffffff');
+        if (icon) icon.className = 'fa-solid fa-moon text-base';
+        if (text) text.textContent = 'التبديل إلى الوضع الليلي';
+        if (badge) badge.textContent = 'الوضع النهاري';
+      }
+    }
+
+    function toggleThemeMode() {
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('mr_parent_theme', isDark ? 'light' : 'dark');
+      applySavedTheme();
+    }
+
+    applySavedTheme();
+
     const gradeNames = {
       '1_prep': 'الأول الإعدادي',
       '2_prep': 'الثاني الإعدادي',
@@ -381,6 +458,7 @@
     };
 
     window.addEventListener('DOMContentLoaded', async () => {
+      applySavedTheme();
       await fetchCenterSettings();
       setupRealtimeSync();
       restoreSavedSession();
@@ -646,7 +724,7 @@
           row.innerHTML = `
             <div class="flex items-center gap-3">
               <span class="w-2.5 h-2.5 rounded-full ${isPresent ? 'bg-emerald-500' : 'bg-red-500'}"></span>
-              <span class="font-bold ${isPresent ? 'text-emerald-400' : 'text-red-400'}">${isPresent ? 'حاضر ✓' : 'غائب ✗'}</span>
+              <span class="font-bold ${isPresent ? 'text-emerald-500' : 'text-red-500'}">${isPresent ? 'حاضر ✓' : 'غائب ✗'}</span>
               <span class="text-slate-400 font-mono">${item.date}</span>
             </div>
             <div>
@@ -673,7 +751,7 @@
         }`;
         card.innerHTML = `
           <span class="text-xs font-extrabold text-white print-text-dark">شهر ${m} (${monthNames[m]})</span>
-          <span class="text-[11px] font-bold ${isPaid ? 'text-emerald-400' : 'text-amber-400'}">${isPaid ? `تم السداد (${amount} ج.م) ✅` : 'غير مسدد ⚠️'}</span>
+          <span class="text-[11px] font-bold ${isPaid ? 'text-emerald-500' : 'text-amber-400'}">${isPaid ? `تم السداد (${amount} ج.م) ✅` : 'غير مسدد ⚠️'}</span>
         `;
         payContainer.appendChild(card);
       }
